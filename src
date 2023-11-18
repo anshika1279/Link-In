@@ -1,0 +1,246 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+class Worker
+{
+public:
+    std::string name;
+    std::vector<std::string> skills;
+
+    Worker(const std::string &name, const std::vector<std::string> &skills)
+        : name(name), skills(skills) {}
+};
+
+class Businessman
+{
+public:
+    std::string name;
+    std::string contact;
+    std::string workNeeded;
+
+    Businessman(const std::string &name, const std::string &contact, const std::string &workNeeded)
+        : name(name), contact(contact), workNeeded(workNeeded) {}
+};
+
+void registerWorker()
+{
+    std::string worker_name, contact_number;
+    std::cout << "Enter the name of the worker: ";
+    std::cin >> worker_name;
+    std::cout << "Enter the contact number of the worker: ";
+    std::cin >> contact_number;
+
+    std::vector<std::string> worker_skills;
+    std::string worker_skill;
+    std::cout << "Enter the skills of the worker (enter q to stop): ";
+    while (std::cin >> worker_skill && worker_skill != "q")
+    {
+        worker_skills.push_back(worker_skill);
+    }
+
+    std::ofstream workerFile("workers.txt", std::ios::app); // Open file in append mode
+    if (workerFile.is_open())
+    {
+        workerFile << worker_name << " " << contact_number << " ";
+        for (const std::string &skill : worker_skills)
+        {
+            workerFile << skill << " ";
+        }
+        workerFile << "\n";
+        workerFile.close();
+        std::cout << "Worker details saved successfully!" << std::endl;
+    }
+    else
+    {
+        std::cout << "Unable to open the file to save worker details." << std::endl;
+    }
+}
+void registerBusinessman()
+{
+    std::string businessman_name, contact, work_needed;
+    std::cout << "Enter the name of the businessman: ";
+    std::cin >> businessman_name;
+    std::cout << "Enter the contact number of the businessman: ";
+    std::cin >> contact;
+    std::cin.ignore(); // Ignore the newline character from previous input
+    std::cout << "Enter the work needed to be done: ";
+    std::getline(std::cin, work_needed);
+
+    std::ofstream businessmanFile("businessmen.txt", std::ios::app); // Open file in append mode
+    if (businessmanFile.is_open())
+    {
+        businessmanFile << businessman_name << " " << contact << " " << work_needed << "\n";
+        businessmanFile.close();
+        std::cout << "Businessman details saved successfully!" << std::endl;
+    }
+    else
+    {
+        std::cout << "Unable to open the file to save businessman details." << std::endl;
+    }
+}
+
+
+void displayBusinessmenList()
+{
+    std::ifstream file("businessmen.txt");
+    std::string line;
+    std::cout << "List of Businessmen:" << std::endl;
+    while (std::getline(file, line))
+    {
+        std::istringstream iss(line);
+        std::string name, contact, work;
+        iss >> name >> contact >> work;
+        std::cout << "Name: " << name << ", Contact: " << contact << ", Work Needed: " << work << std::endl;
+    }
+}
+
+void displayWorkersList()
+{
+    std::ifstream file("workers.txt");
+    std::string line;
+    std::cout << "List of Workers:" << std::endl;
+    while (std::getline(file, line))
+    {
+        std::istringstream iss(line);
+        std::string name, contact, skill;
+        iss >> name >> contact;
+        std::cout << "Name: " << name << ", Contact: " << contact << ", Skills: ";
+        while (iss >> skill)
+        {
+            std::cout << skill << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void makeMatch(const std::vector<Businessman> &businessmen, const Worker &worker) {
+    std::vector<std::string> workerSkills = worker.skills;
+    std::vector<Businessman> matchingBusinessmen;
+
+    for (const Businessman &businessman : businessmen) {
+        std::istringstream iss(businessman.workNeeded);
+        std::string neededSkill;
+        bool isMatched = false;
+        while (iss >> neededSkill) {
+            if (std::find(workerSkills.begin(), workerSkills.end(), neededSkill) != workerSkills.end()) {
+                isMatched = true;
+                break;
+            }
+        }
+        if (isMatched) {
+            matchingBusinessmen.push_back(businessman);
+        }
+    }
+
+    if (matchingBusinessmen.empty()) {
+        std::cout << "No suitable businessmen found for the given worker." << std::endl;
+    } else {
+        std::cout << "Suitable businessmen for " << worker.name << " based on matching skills are:" << std::endl;
+        for (const Businessman &matchedBusinessman : matchingBusinessmen) {
+            std::cout << "Name: " << matchedBusinessman.name << ", Contact: " << matchedBusinessman.contact << ", Work Needed: " << matchedBusinessman.workNeeded << std::endl;
+        }
+    }
+}
+
+
+
+
+void displayWorkerRatings()
+{
+    // Functionality to display worker ratings
+    // You can add your logic here for displaying worker ratings
+    std::cout << "Worker Ratings:" << std::endl;
+    // Placeholder code, replace with actual functionality
+    std::cout << "anshika  5* " << std::endl;
+    std::cout << "sneha    4* " << std::endl;
+    std::cout << "kashish  4* " << std::endl;
+}
+
+int main()
+{
+    std::cout << "Welcome to Link-In" << std::endl;
+
+    std::vector<Businessman> businessmen;
+
+    // Loading businessmen from the file "businessmen.txt"
+    std::ifstream file("businessmen.txt");
+    std::string line;
+
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string name, contact, workNeeded;
+        iss >> name >> contact;
+        std::string temp;
+        while (iss >> temp) {
+            workNeeded += temp + " ";
+        }
+        businessmen.emplace_back(Businessman(name, contact, workNeeded));
+    }
+
+    if (businessmen.empty()) {
+        std::cout << "No businessmen found!" << std::endl;
+        return 0;
+    }
+    int choice;
+
+    do
+    {
+        std::cout << "\nMenu Options:" << std::endl;
+        std::cout << "1. Register Worker" << std::endl;
+        std::cout << "2. Register Bussinessmen" << std::endl;
+        std::cout << "3. Display All Workers" << std::endl;
+        std::cout << "4. Display All Businessmen" << std::endl;
+        std::cout << "5. Most Suitable Job Offers" << std::endl;
+        std::cout << "6. Display Worker Ratings" << std::endl;
+        std::cout << "7. Exit" << std::endl;
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            registerWorker();
+            break;
+        case 2:
+            registerBusinessman();
+            break;
+        case 3:
+            displayWorkersList();
+            break;
+        case 4:
+            displayBusinessmenList();
+            break;
+        case 5:
+            {
+                std::string worker_name;
+                std::cout << "Enter the name of the worker: ";
+                std::cin >> worker_name;
+
+                std::vector<std::string> worker_skills;
+                std::string worker_skill;
+                std::cout << "Enter the skills of the worker (enter q to stop): ";
+                while (std::cin >> worker_skill && worker_skill != "q") {
+                    worker_skills.push_back(worker_skill);
+                }
+
+                Worker worker(worker_name, worker_skills);
+                makeMatch(businessmen, worker); // Calling makeMatch function
+            }
+            break;
+        case 6:
+            displayWorkerRatings();
+            break;
+        case 7:
+            std::cout << "Exiting the program. Goodbye!" << std::endl;
+            break;
+        default:
+            std::cout << "Invalid choice. Please enter a valid option." << std::endl;
+        }
+    } while (choice != 7);
+
+    return 0;
+}
